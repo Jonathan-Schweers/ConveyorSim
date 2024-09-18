@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conveyor Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Asap&display=swap" rel="stylesheet">
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Asap', sans-serif;
+            color: white;
+            background-color: rgb(12, 15, 29);
+        }
+        .controls {
+            margin: 20px;
+            display: grid;
+            grid-template-columns: repeat(7, auto);
+            grid-gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+        .controls label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+        .controls input {
+            width: 100px;
+            text-align: right;
+        }
+        .controls button {
+            grid-column: span 7; /* Span the button across all columns */
+            margin-top: 10px; /* Add margin above the button */
+        }
+        .wrapper {
+            position: relative;
+            padding: 0 100px; /* Padding of 100px on left and right */
+            margin: 300px auto 100px; /* Center wrapper horizontally with 100px padding on sides */
+            display: flex;
+            justify-content: center; /* Center conveyor container horizontally */
+            height: 100px; /* Default height, will be updated via JS */
+        }
+        .conveyor-container {
+            position: absolute;
+            border: 2px solid white;
+            overflow: hidden; /* Ensure the conveyors don't overflow the container */
+            display: flex; /* Use flexbox to center contents */
+            justify-content: center; /* Center items horizontally */
+            align-items: center; /* Center items vertically */
+            overflow: visible;
+        }
+        .conveyor {
+            display: flex;
+            align-items: center;
+        }
+        .conveyor-line {
+            position: relative;
+            height: 2px;
+            background-color: #000; /* Default color to see if lines are rendering */
+            transition: width 0.5s; /* Smooth width change */
+        }
+        .magenta {
+            background-color: magenta;
+        }
+        .cyan {
+            background-color: cyan;
+        }
+        .push-panel {
+            position: absolute;
+            width: 2px;
+            height: calc(2 * var(--radius)); /* Use radius from JavaScript */
+            background-color: rgb(0, 255, 0);
+            transform-origin: bottom;
+            transform: rotate(0deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label>RPM1<input type="number" id="rpm1" value="50"></label>
+        <label>RPM2<input type="number" id="rpm2" value="20"></label>
+        <label>Spacing1<input type="number" id="spacing1" value="400"></label>
+        <label>RPM3<input type="number" id="rpm3" value="15"></label>
+        <label>RPM4<input type="number" id="rpm4" value="25"></label>
+        <label>Spacing2<input type="number" id="spacing2" value="400"></label>
+        <label>Radius<input type="number" id="radius" value="100"></label>
+        <label>Time1<input type="number" id="time1" value="5"></label>
+        <label>Time2<input type="number" id="time2" value="10"></label>
+        <label>Amount1<input type="number" id="amount1" value="15"></label>
+        <label>Time3<input type="number" id="time3" value="7"></label>
+        <label>Time4<input type="number" id="time4" value="12"></label>
+        <label>Amount2<input type="number" id="amount2" value="15"></label>
+        <button onclick="updateConveyors()">Update</button>
+    </div>
+    <div class="wrapper" id="wrapper">
+        <div class="conveyor-container" id="container">
+            <div id="conveyor" class="conveyor">
+                <div class="conveyor-line magenta" id="line1"></div>
+                <div class="conveyor-line cyan" id="line2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateConveyors() {
+            // Get input values for all parameters
+            const rpm1 = parseFloat(document.getElementById('rpm1').value);
+            const time1 = parseFloat(document.getElementById('time1').value);
+            const rpm2 = parseFloat(document.getElementById('rpm2').value);
+            const time2 = parseFloat(document.getElementById('time2').value);
+            const rpm3 = parseFloat(document.getElementById('rpm3').value);
+            const time3 = parseFloat(document.getElementById('time3').value);
+            const rpm4 = parseFloat(document.getElementById('rpm4').value);
+            const time4 = parseFloat(document.getElementById('time4').value);
+            const spacing1 = parseFloat(document.getElementById('spacing1').value);
+            const amount1 = parseFloat(document.getElementById('amount1').value);
+            const spacing2 = parseFloat(document.getElementById('spacing2').value);
+            const amount2 = parseFloat(document.getElementById('amount2').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+    
+            // Calculate circumference
+            const circumference = 2 * Math.PI * radius;
+    
+            // Calculate lengths ensuring they are non-negative
+            const length1 = Math.max((spacing1 * amount1 - circumference) / 2, 0);
+            const length2 = Math.max((spacing2 * amount2 - circumference) / 2, 0);
+    
+            // Debugging outputs
+            console.log('Circumference:', circumference);
+            console.log('Spacing1:', spacing1);
+            console.log('Amount1:', amount1);
+            console.log('Spacing2:', spacing2);
+            console.log('Amount2:', amount2);
+            console.log('Length1:', length1);
+            console.log('Length2:', length2);
+    
+            // Update line widths
+            document.getElementById('line1').style.width = length1 + 'px';
+            document.getElementById('line2').style.width = length2 + 'px';
+    
+            // Update container dimensions
+            const container = document.getElementById('container');
+            const wrapper = document.getElementById('wrapper');
+            container.style.height = (radius * 2) + 'px'; // Set height to radius*2
+            container.style.width = (length1 + length2 + radius * 2) + 'px'; // Set width to length1 + length2 + radius*2
+            container.style.borderRadius = radius + 'px'; // Set border-radius to radius
+            
+            // Update wrapper dimensions
+            wrapper.style.height = (radius * 2) + 'px'; // Set wrapper height to radius*2
+            wrapper.style.width = (length1 + length2 + 200) + 'px'; // Set wrapper width to length1 + length2 + padding (100px each side)
+    
+            // Call function to create and animate push-panel
+            createAndAnimatePushPanel(length1, rpm1, radius);
+        }
+    
+        // Function to create the push-panel and animate it along the conveyor
+        function createAndAnimatePushPanel(length1, rpm1, radius) {
+            // Remove any existing push-panel
+            const existingPanel = document.querySelector('.push-panel');
+            if (existingPanel) existingPanel.remove();
+        
+            // Create a new push-panel and add it to the container
+            const pushPanel = document.createElement('div');
+            pushPanel.classList.add('push-panel');
+            pushPanel.style.width = '2px';
+            pushPanel.style.height = radius * 2 + 'px';
+            pushPanel.style.backgroundColor = 'green';
+            pushPanel.style.position = 'absolute';
+        
+            // Set starting position to the left and align vertically with the top of the conveyor
+            pushPanel.style.left = `${radius}`; // Start at the left side
+            pushPanel.style.top = `-${radius}px`; // Align vertically by moving it upwards by radius amount
+        
+            // Set transformation origin for rotation
+            pushPanel.style.transformOrigin = 'bottom';
+            document.getElementById('container').appendChild(pushPanel);
+        
+            // Calculate the speed (circumference per minute) based on RPM
+            const conveyorSpeed = (2 * Math.PI * radius) * (rpm1 / 60); // Pixels per second
+        
+            // Move the panel in distinct steps
+            animatePushPanel(pushPanel, length1, conveyorSpeed, rpm1, radius);
+        }
+    
+        // Function to animate the push-panel with 4 distinct motions
+        function animatePushPanel(panel, length, speed, rpm, radius) {
+            const timeToMove = (length / speed) * 1000; // Time in ms to move the panel across the straight section
+            const timeToRotate = (60000 / rpm) / 2; // Time in ms for 180° rotation (half a revolution)
+                
+            // Step 1: Move to the right (first straight translation)
+            panel.style.transition = `transform ${timeToMove}ms linear`;
+            panel.style.transform = `translateX(${length}px)`;
+                
+            setTimeout(() => {
+                // Step 2: Rotate 180° clockwise at the end of the first translation
+                panel.style.transition = `transform ${timeToRotate}ms linear`;
+                panel.style.transform += ` rotate(180deg)`;
+            
+                setTimeout(() => {
+                    // Step 3: Move back to the left (second straight translation)
+                    panel.style.transition = `transform ${timeToMove}ms linear`;
+                    panel.style.transform = `translateX(0) rotate(180deg)`; // Keep rotation at 180°
+                
+                    setTimeout(() => {
+                        // Step 4: Rotate 180° clockwise again at the left end
+                        panel.style.transition = `transform ${timeToRotate}ms linear`;
+                        panel.style.transform = `translateX(0) rotate(360deg)`; // Complete 360° rotation
+                    
+                        // Step 5: Reset rotation to avoid accumulation
+                        setTimeout(() => {
+                            panel.style.transition = 'none'; // Disable transitions momentarily
+                            panel.style.transform = 'translateX(0) rotate(0deg)'; // Reset rotation to 0
+                            // Re-enable animation loop
+                            setTimeout(() => {
+                                animatePushPanel(panel, length, speed, rpm, radius); // Repeat the animation
+                            }, 50); // Short delay to avoid transition overlap
+                        }, timeToRotate);
+                    }, timeToMove);
+                }, timeToRotate);
+            }, timeToMove);
+        }
+
+    
+        // Initialize with default values
+        updateConveyors();
+    </script>
+    
+    
+</body>
+</html>
